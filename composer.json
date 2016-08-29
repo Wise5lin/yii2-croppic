@@ -1,0 +1,37 @@
+{
+    "name": "wise5lin/yii2-croppic",
+    "description": "Croppic виджет для Yii2 Framework.",
+    "type": "yii2-extension",
+    "keywords": [
+        "yii2",
+        "extension",
+        "widget",
+        "croppic"
+    ],
+    "homepage": "https://github.com/Wise5lin/yii2-croppic",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Двуреченский Сергей",
+            "email": "wise5lin@yandex.ru",
+            "homepage": "https://github.com/Wise5lin"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/Wise5lin/yii2-croppic/issues?state=open",
+        "source": "https://github.com/Wise5lin/yii2-croppic"
+    },
+    "require": {
+        "yiisoft/yii2": "*",
+        "yiisoft/yii2-imagine": "*"
+    },
+    "require-dev": {
+        "yiisoft/yii2-codeception": "*",
+        "mikey179/vfsStream": ">=1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "wise5lin\\croppic\\": ""
+        }
+    }
+}
