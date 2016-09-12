@@ -171,7 +171,7 @@ class UploadAction extends Action
         // Если атрибут 'model' заполнен.
         if ($this->model !== null) {
             // Проверяем чтобы он являлся экземпляром класса "yii\base\Model".
-            if (!($this->model instanceof yii\base\Model)) {
+            if (!($this->model instanceof \yii\base\Model)) {
                 throw new InvalidConfigException(
                     'Атрибут "model" не является экземпляром класса "yii\base\Model".'
                 );

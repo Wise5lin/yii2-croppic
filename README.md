@@ -1,9 +1,9 @@
 # Croppic виджет для Yii2 Framework
 
-`Croppic` - это JQuery плагин для обрезки изображения.
+**Croppic** - это JQuery плагин для обрезки изображения.
 
- - `Github` - https://github.com/sconsult/croppic
- - `Официальный сайт` - http://www.croppic.net/
+ - **Github** - https://github.com/sconsult/croppic
+ - **Официальный сайт** - http://www.croppic.net/
 
 ## Установка
 
@@ -40,6 +40,11 @@ use wise5lin\croppic\Croppic;
         'modal' => false,
         'doubleZoomControls' => false,
         'enableMousescroll' => true,
+        'loaderHtml' => '<div class="loader bubblingG">
+            <span id="bubblingG_1"></span>
+            <span id="bubblingG_2"></span>
+            <span id="bubblingG_3"></span>
+        </div> ',
     ]
 ]) ?>
 ```
@@ -68,9 +73,12 @@ public function actions()
          */
         'upload' => [
             'class' => 'wise5lin\croppic\actions\UploadAction',
-            'tempPath' => '@frontend/web/img/temp', // Абсолютный путь к папке в которую будет сохранено (временно) изображение
-            'tempUrl' => 'img/temp/', // URL адрес к папке в которую будет сохранено (временно) изображение
-            'validatorOptions' => [ // Правила проверки изображения.
+            // Абсолютный путь к папке в которую будет сохранено изображение (временно).
+            'tempPath' => '@frontend/web/img/temp',
+            // URL адрес к папке в которую будет сохранено изображение (временно).
+            'tempUrl' => 'img/temp/',
+            // Правила проверки изображения.
+            'validatorOptions' => [
                 'checkExtensionByMimeType' => true,
                 'extensions' => 'jpeg, jpg, png',
                 'maxSize' => 3000000,
@@ -82,8 +90,10 @@ public function actions()
          */
         'crop' => [
             'class' => 'wise5lin\croppic\actions\CropAction',
-            'path' => '@frontend/web/img/user/avatar', // Абсолютный путь к папке в которую будет сохранено изображение
-            'url' => 'img/user/avatar/', // URL адрес к папке в которую будет сохранено изображение
+            // Абсолютный путь к папке в которую будет сохранено изображение.
+            'path' => '@frontend/web/img/user/avatar',
+            // URL адрес к папке в которую будет сохранено изображение.
+            'url' => 'img/user/avatar/',
         ],
     ];
 }
@@ -91,7 +101,7 @@ public function actions()
 
 ### Дополнительные возможности
 
-Чтобы воспользоваться дополнительными возможностями вы должны передать действиям `экземпляр класса yii\db\ActiveRecord`.
+Чтобы воспользоваться дополнительными возможностями вы должны передать действиям **объект класса модели**:
 
 ```php
 public function beforeAction($action)
@@ -112,7 +122,7 @@ public function beforeAction($action)
 
 #### Проверка доступа пользователя к страницам с помощью RBAC ####
 
-Передайте действиям `разрешение` и `параметр` RBAC:
+Передайте действиям **разрешение** и **параметр** RBAC:
 
 ```php
 public function actions()
@@ -123,26 +133,30 @@ public function actions()
          */
         'upload' => [
             'class' => 'wise5lin\croppic\actions\UploadAction',
-            'tempPath' => '@frontend/web/img/temp', // Абсолютный путь к папке в которую будет сохранено (временно) изображение
-            'tempUrl' => 'img/temp/', // URL адрес к папке в которую будет сохранено (временно) изображение
-            'validatorOptions' => [ // Правила проверки изображения.
+            'tempPath' => '@frontend/web/img/temp',
+            'tempUrl' => 'img/temp/',
+            'validatorOptions' => [
                 'checkExtensionByMimeType' => true,
                 'extensions' => 'jpeg, jpg, png',
                 'maxSize' => 3000000,
                 'tooBig' => 'Выбранное вами изображение слишком большое (макс. 3мб)',
             ],
-            'permissionRBAC' => 'updateProfile', // <----- разрешение RBAC
-            'parameterRBAC' => 'profile', // <----- параметр RBAC
+            // Разрешение RBAC
+            'permissionRBAC' => 'updateProfile',
+            // Параметр RBAC
+            'parameterRBAC' => 'profile',
         ],
         /**
          * Обрезка изображения
          */
         'crop' => [
             'class' => 'wise5lin\croppic\actions\CropAction',
-            'path' => '@frontend/web/img/user/avatar', // Абсолютный путь к папке в которую будет сохранено изображение
-            'url' => 'img/user/avatar/', // URL адрес к папке в которую будет сохранено изображение
-            'permissionRBAC' => 'updateProfile', // <----- разрешение RBAC
-            'parameterRBAC' => 'profile', // <----- параметр RBAC
+            'path' => '@frontend/web/img/user/avatar',
+            'url' => 'img/user/avatar/',
+            // Разрешение RBAC
+            'permissionRBAC' => 'updateProfile',
+            // Параметр RBAC
+            'parameterRBAC' => 'profile',
         ],
     ];
 }
@@ -161,19 +175,18 @@ public function actions()
          */
         'crop' => [
             'class' => 'wise5lin\croppic\actions\CropAction',
-            'path' => '@frontend/web/img/user/avatar', // Абсолютный путь к папке в которую будет сохранено изображение
-            'url' => 'img/user/avatar/', // URL адрес к папке в которую будет сохранено изображение
-            'modelAttribute' => 'avatar', // <----- пример №1
-            'modelScenario' => 'saveAvatar', // <----- пример №2
-            'modelAttributeSavePath' => false, // <----- пример №3
+            'path' => '@frontend/web/img/user/avatar',
+            'url' => 'img/user/avatar/',
+            'modelAttribute' => 'avatar', // <--- пример №1
+            'modelScenario' => 'saveAvatar', // <--- пример №2
+            'modelAttributeSavePath' => false, // <--- пример №3
         ],
     ];
 }
 ```
 
-Передайте действию `crop`:
- - Название атрибута модели который будет использоваться для
-   сохранения пути или имени изображения в базу `(пример №1)`
- - Сценарий используемый моделью для проверки входящих данных `(пример №2)`
- - Если в базу нужно сохранить только имя изображения, для параметра 'modelAttributeSavePath'
-   укажите значение 'false' `(пример №3)`
+Передайте действию **crop**:
+ - **Название атрибута модели** который будет использоваться для сохранения (**пример №1**).
+ - **Сценарий модели** используемый для проверки входящих данных (**пример №2**).
+ - Если нужно сохранить только имя изображения, для параметра **modelAttributeSavePath**
+   укажите значение **false** (**пример №3**).

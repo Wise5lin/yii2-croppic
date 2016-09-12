@@ -36,6 +36,11 @@ use yii\base\InvalidConfigException;
  *       'modal' => false,
  *       'doubleZoomControls' => false,
  *       'enableMousescroll' => true,
+ *       'loaderHtml' => '<div class="loader bubblingG">
+ *          <span id="bubblingG_1"></span>
+ *          <span id="bubblingG_2"></span>
+ *          <span id="bubblingG_3"></span>
+ *       </div> ',
  *    ],
  * ]) ?>
  */
