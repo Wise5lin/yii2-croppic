@@ -5,10 +5,11 @@
     /* MANDATORY */
     position: relative;
     /* MANDATORY */
-    border: 3px solid rgba(0, 0, 0, .87);
+    border: 3px solid #F3F4F5;
     box-sizing: content-box;
     -moz-box-sizing: content-box;
     border-radius: 2px;
+    background-color: #00B5AD!important;
     background-image: url('img/placeholder.png');
     background-repeat: no-repeat;
     background-position: center;

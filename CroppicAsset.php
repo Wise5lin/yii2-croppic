@@ -26,14 +26,13 @@ class CroppicAsset extends AssetBundle
     /**
      * Регистрирует CSS и JS файлы.
      *
-     * @method registerAssetFiles
-     * @param  yii\web\View       $view вид в котором файлы
-     *                                  должны быть зарегистрированы
+     * @param \yii\web\View $view вид в котором файлы
+     *                            должны быть зарегистрированы
      */
     public function registerAssetFiles($view)
     {
-        $this->css[] = 'croppic.css';
-        $this->js[] = 'croppic' . (!YII_DEBUG ? '.min' : '') . '.js';
+        $this->css[] = 'croppic' . (!YII_ENV_DEV ? '.min' : '') . '.css';
+        $this->js[] = 'croppic' . (!YII_ENV_DEV ? '.min' : '') . '.js';
         $this->js[] = 'jquery.mousewheel.min.js';
 
         parent::registerAssetFiles($view);
