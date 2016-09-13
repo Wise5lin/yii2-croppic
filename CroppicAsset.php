@@ -26,6 +26,7 @@ class CroppicAsset extends AssetBundle
     /**
      * Регистрирует CSS и JS файлы.
      *
+     * @method registerAssetFiles
      * @param \yii\web\View $view вид в котором файлы
      *                            должны быть зарегистрированы
      */
