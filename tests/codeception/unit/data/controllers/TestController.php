@@ -2,7 +2,7 @@
 
 namespace tests\codeception\unit\data\controllers;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -19,7 +19,7 @@ use wise5lin\croppic\actions\UploadAction;
 class TestController extends \yii\web\Controller
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function actions()
     {
@@ -31,8 +31,8 @@ class TestController extends \yii\web\Controller
             'upload-empty-url' => [
                 'class' => UploadAction::className(),
                 'tempPath' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_TEMP_DIR
                 ),
                 'tempUrl' => null,
@@ -40,8 +40,8 @@ class TestController extends \yii\web\Controller
             'upload-model-instanceof-class' => [
                 'class' => UploadAction::className(),
                 'tempPath' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_TEMP_DIR
                 ),
                 'tempUrl' => '/img/temp',
@@ -49,29 +49,29 @@ class TestController extends \yii\web\Controller
             'upload-error' => [
                 'class' => UploadAction::className(),
                 'tempPath' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_TEMP_DIR
                 ),
                 'tempUrl' => '/img/temp',
                 'validatorOptions' => [
                     'checkExtensionByMimeType' => true,
-                    'extensions' => ['png']
-                ]
+                    'extensions' => ['png'],
+                ],
             ],
             'upload' => [
                 'class' => UploadAction::className(),
                 'tempPath' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_TEMP_DIR
                 ),
                 'tempUrl' => '/img/temp',
                 'uniqueName' => false,
                 'validatorOptions' => [
                     'checkExtensionByMimeType' => true,
-                    'extensions' => ['jpeg', 'png']
-                ]
+                    'extensions' => ['jpeg', 'png'],
+                ],
             ],
 
             'crop-empty-path' => [
@@ -81,8 +81,8 @@ class TestController extends \yii\web\Controller
             'crop-empty-url' => [
                 'class' => CropAction::className(),
                 'path' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_CROPPED_DIR
                 ),
                 'url' => null,
@@ -90,22 +90,22 @@ class TestController extends \yii\web\Controller
             'crop-model-instanceof-class' => [
                 'class' => CropAction::className(),
                 'path' => vfsStream::url(
-                    TestCase::ROOT_DIR . '/' .
-                    TestCase::IMG_DIR . '/' .
+                    TestCase::ROOT_DIR.'/'.
+                    TestCase::IMG_DIR.'/'.
                     TestCase::SAVE_CROPPED_DIR
                 ),
                 'url' => '/img/cropped',
             ],
             'crop' => [
                 'class' => CropAction::className(),
-                'path' => 'tests/codeception/unit/data/img/cropped',
+                'path' => '@tests/codeception/unit/data/img/cropped',
                 'url' => '/img/cropped',
             ],
         ];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function behaviors()
     {
@@ -122,19 +122,19 @@ class TestController extends \yii\web\Controller
                     'crop-empty-url' => ['post'],
                     'crop-model-instanceof-class' => ['post'],
                     'crop' => ['post'],
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function beforeAction($action)
     {
         if ($action->id === 'upload-model-instanceof-class' || $action->id === 'crop-model-instanceof-class') {
             if ($action->hasProperty('model')) {
-                $action->model = new \yii\helpers\Html;
+                $action->model = new \yii\helpers\Html();
             }
         }
 

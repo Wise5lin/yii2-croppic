@@ -37,6 +37,12 @@ use wise5lin\croppic\Croppic;
     'pluginOptions' => [
         'uploadUrl' => $model->urlUpload,
         'cropUrl' => $model->urlCrop,
+        'cropData' => [
+            // Динамическое задание пути для сохранения изображения.
+            'path' => '@frontend/web/img/user/avatar/'.$model->id,
+            // Динамическое задание URL для сохранения изображения.
+            'url' => '/img/user/avatar/'.$model->id,
+        ],
         'modal' => false,
         'doubleZoomControls' => false,
         'enableMousescroll' => true,

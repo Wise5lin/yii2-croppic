@@ -1,8 +1,5 @@
 <?php
 
-/**
- * Application configuration for unit tests
- */
 return [
     'id' => 'testApp',
     'basePath' => dirname(dirname(__DIR__)),
@@ -12,10 +9,10 @@ return [
         'request' => [
             'class' => 'yii\web\Request',
             'url' => '/test',
-            'enableCsrfValidation' => false
+            'enableCsrfValidation' => false,
         ],
         'response' => [
-            'class' => 'yii\web\Response'
-        ]
-    ]
+            'class' => 'yii\web\Response',
+        ],
+    ],
 ];

@@ -2,7 +2,7 @@
 
 namespace wise5lin\croppic;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -11,12 +11,10 @@ namespace wise5lin\croppic;
  * @link   <wise5lin@yandex.ru>
  */
 
-use yii\web\AssetBundle;
-
 /**
  * Класс комплекта ресурсов для виджета Croppic.
  */
-class CroppicAsset extends AssetBundle
+class CroppicAsset extends \yii\web\AssetBundle
 {
     public $sourcePath = '@wise5lin/croppic/assets';
     public $depends = [
@@ -24,16 +22,12 @@ class CroppicAsset extends AssetBundle
     ];
 
     /**
-     * Регистрирует CSS и JS файлы.
-     *
-     * @method registerAssetFiles
-     * @param \yii\web\View $view вид в котором файлы
-     *                            должны быть зарегистрированы
+     * {@inheritdoc}
      */
     public function registerAssetFiles($view)
     {
-        $this->css[] = 'croppic' . (!YII_ENV_DEV ? '.min' : '') . '.css';
-        $this->js[] = 'croppic' . (!YII_ENV_DEV ? '.min' : '') . '.js';
+        $this->css[] = 'croppic'.(!YII_ENV_DEV ? '.min' : '').'.css';
+        $this->js[] = 'croppic'.(!YII_ENV_DEV ? '.min' : '').'.js';
         $this->js[] = 'jquery.mousewheel.min.js';
 
         parent::registerAssetFiles($view);

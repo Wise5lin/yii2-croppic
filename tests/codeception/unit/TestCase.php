@@ -2,7 +2,7 @@
 
 namespace tests\codeception\unit;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -15,19 +15,40 @@ use Yii;
 use org\bovigo\vfs\vfsStream;
 
 /**
- * @inheritdoc
+ * {@inheritdoc}
  */
-class TestCase extends \yii\codeception\TestCase
+class TestCase extends \Codeception\Test\Unit
 {
+    /**
+     * Флаг содержащий название корневой директории.
+     *
+     * @var string
+     */
     const ROOT_DIR = 'root';
+    /**
+     * Флаг содержащий название директории для изображений.
+     *
+     * @var string
+     */
     const IMG_DIR = 'img';
+    /**
+     * Флаг содержащий название директории для временных файлов.
+     *
+     * @var string
+     */
     const SAVE_TEMP_DIR = 'temp';
+    /**
+     * Флаг содержащий название директории в которую
+     * сохраняется обрезанное изображение.
+     *
+     * @var string
+     */
     const SAVE_CROPPED_DIR = 'cropped';
 
-    public $appConfig = '@tests/codeception/config/unit.php';
+    public $appConfig = '@tests/codeception/config/test.php';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function setUp()
     {
@@ -41,7 +62,7 @@ class TestCase extends \yii\codeception\TestCase
         ]);
 
         $this->createVirtualJpegImage(
-            vfsStream::url(self::ROOT_DIR . '/' . self::IMG_DIR . '/img.jpeg')
+            vfsStream::url(self::ROOT_DIR.'/'.self::IMG_DIR.'/img.jpeg')
         );
 
         Yii::setAlias('webroot', vfsStream::url(self::ROOT_DIR));
@@ -51,8 +72,8 @@ class TestCase extends \yii\codeception\TestCase
      * Создает виртуальное JPEG изображение.
      *
      * @method createVirtualJpegImage
-     * @param  string                 $path путь до изображения в
-     *                                      виртуальной файловой системе
+     *
+     * @param string $path путь до изображения в виртуальной файловой системе
      */
     protected function createVirtualJpegImage($path)
     {

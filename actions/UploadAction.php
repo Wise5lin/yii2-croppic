@@ -2,7 +2,7 @@
 
 namespace wise5lin\croppic\actions;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -12,7 +12,6 @@ namespace wise5lin\croppic\actions;
  */
 
 use Yii;
-use yii\base\Action;
 use yii\helpers\Json;
 use yii\web\UploadedFile;
 use yii\base\DynamicModel;
@@ -24,7 +23,7 @@ use yii\base\InvalidConfigException;
 /**
  * Класс действия для загрузки изображения.
  *
- * Использование:
+ * ИСПОЛЬЗОВАНИЕ:
  *
  * public function behaviors()
  * {
@@ -72,27 +71,25 @@ use yii\base\InvalidConfigException;
  *     return true;
  * }
  */
-class UploadAction extends Action
+class UploadAction extends \yii\base\Action
 {
     /**
-     * Абсолютный путь к директории в
-     * которую будет загружено изображение.
+     * Абсолютный путь к директории в которую будет загружено изображение.
      *
      * @var string
      */
     public $tempPath;
     /**
-     * URL указывающий путь к директории в
-     * которую будет загружено изображение.
+     * URL указывающий путь к директории в которую будет загружено изображение.
      *
      * @var string
      */
     public $tempUrl;
     /**
-     * Указывает, генерировать ли уникальное
-     * название для загружаемого изображения.
+     * Указывает, генерировать уникальное название для
+     * загружаемого изображения или нет.
      *
-     * @var boolean
+     * @var bool
      */
     public $uniqueName = true;
     /**
@@ -134,29 +131,35 @@ class UploadAction extends Action
      */
     private $savedImage;
 
+    //   _ \ _)   _| _|                     |       __|            |
+    //   |  | |   _| _| -_)   _| -_)    \    _|    (      _ \   _` |   -_)
+    //  ___/ _| _| _| \___| _| \___| _| _| \__|   \___| \___/ \__,_| \___|
+
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init()
     {
-        // Если атрибут 'tempPath' не заполнен.
-        if ($this->tempPath === null) {
+        // Если атрибут 'tempPath' не заполнен или не является строкой.
+        if (empty($this->tempPath) || is_string($this->tempPath) === false) {
             throw new InvalidConfigException(
-                'Атрибут "tempPath" не может быть пустым.'
+                'Атрибут "tempPath" пуст или не является строкой.'
             );
         }
-        $this->tempPath = rtrim(Yii::getAlias($this->tempPath), '/') . '/';
 
-        // Если атрибут 'tempUrl' не заполнен.
-        if ($this->tempUrl === null) {
+        $this->tempPath = rtrim(Yii::getAlias($this->tempPath), '/').'/';
+
+        // Если атрибут 'tempUrl' не заполнен или не является строкой.
+        if (empty($this->tempUrl) || is_string($this->tempUrl) === false) {
             throw new InvalidConfigException(
-                'Атрибут "tempUrl" не может быть пустым.'
+                'Атрибут "tempUrl" пуст или не является строкой.'
             );
         }
-        $this->tempUrl = rtrim($this->tempUrl, '/') . '/';
+
+        $this->tempUrl = rtrim($this->tempUrl, '/').'/';
 
         // Если директория не существует или не удается её создать.
-        if (!FileHelper::createDirectory($this->tempPath)) {
+        if (FileHelper::createDirectory($this->tempPath) === false) {
             throw new InvalidCallException(
                 'Директория указанная в атрибуте "tempPath" не существует или не может быть создана.'
             );
@@ -164,46 +167,32 @@ class UploadAction extends Action
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function run()
     {
-        // Если атрибут 'model' заполнен.
-        if ($this->model !== null) {
-            // Проверяем чтобы он являлся экземпляром класса "yii\base\Model".
-            if (!($this->model instanceof \yii\base\Model)) {
-                throw new InvalidConfigException(
-                    'Атрибут "model" не является экземпляром класса "yii\base\Model".'
-                );
-            }
-            // Если атрибуты 'permissionRBAC' и 'parameterRBAC' заполнены.
-            if ($this->permissionRBAC !== null && $this->parameterRBAC !== null) {
-                // Проверяем доступ пользователя к странице.
-                if (!Yii::$app->user->can($this->permissionRBAC, [$this->parameterRBAC => $this->model])) {
-                    throw new ForbiddenHttpException(
-                        'У вас нет доступа к этой странице.'
-                    );
-                }
-            }
-        }
+        // Работаем с дополнительными возможностями.
+        $this->workWithAdditionalFeatures();
 
         // Получаем изображение.
         $image = UploadedFile::getInstanceByName('img');
 
-        // Создаем экземпляр класса DynamicModel,
-        // определяем атрибуты, проводим проверку.
+        // Проводим проверку загружаемого изображения.
         $model = new DynamicModel(compact('image'));
         $model->addRule('image', 'required')
-            ->addRule('image', 'image', $this->validatorOptions)
-            ->validate();
+        ->addRule('image', 'image', $this->validatorOptions)
+        ->validate();
 
-        // Если нет ошибок валидации и
-        // изображение успешно сохранено.
-        if (!$model->hasErrors() && $this->saveTempImage($model->image)) {
+        /** @var \yii\web\Session */
+        $session = Yii::$app->session;
+
+        // Если нет ошибок валидации и изображение успешно сохранено.
+        if ($model->hasErrors() === false && $this->isSavedImage($model->image, $session)) {
             // Получаем высоту и ширину изображения.
             list($width, $height) = getimagesize(
-                $this->tempPath . Yii::$app->getSession()->get('tempImage')
+                $this->tempPath.$session->get('tempImage')
             );
+
             // Формируем удачный ответ.
             $response = [
                 'status' => 'success',
@@ -212,9 +201,11 @@ class UploadAction extends Action
                 'height' => $height,
             ];
 
-            goto success;
+            // Выходим.
+            goto leave;
         }
 
+        // Формируем неудачный ответ.
         $response = [
             'status' => 'error',
             'message' => $model->getFirstError('image') !== null ?
@@ -222,60 +213,95 @@ class UploadAction extends Action
                 'Не удалось загрузить изображение.',
         ];
 
-        success:
+        leave:
 
         // Возвращаем JSON стоку.
         return Json::encode($response);
     }
 
     /**
-     * Сохраняет загруженное изображение в папку и
-     * в сессию пользователя записывает название изображения.
+     * Работает с дополнительными возможностями.
      *
-     * @method saveTempImage
-     * @param  UploadedFile  $image экземпляр загруженного файла
-     * @return bool                 true если изображение успешно сохранено
+     * @method workWithAdditionalFeatures
      */
-    private function saveTempImage($image)
+    private function workWithAdditionalFeatures()
     {
-        // Если необходимо сгенерировать
-        // уникальное название изображения.
+        // Если атрибут 'model' заполнен.
+        if (empty($this->model) === false) {
+            // Если атрибут 'model' не является экземпляром класса "yii\base\Model".
+            if (($this->model instanceof \yii\base\Model) === false) {
+                throw new InvalidConfigException(
+                    'Атрибут "model" не является экземпляром класса "yii\base\Model".'
+                );
+            }
+
+            // Если атрибуты 'permissionRBAC' и 'parameterRBAC' заполнены.
+            if (empty($this->permissionRBAC) === false && empty($this->parameterRBAC) === false) {
+                // Проверяем доступ пользователя к странице.
+                if (!Yii::$app->user->can($this->permissionRBAC, [$this->parameterRBAC => $this->model])) {
+                    throw new ForbiddenHttpException('У вас нет доступа к этой странице.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Сохраняет загруженное изображение в папку и в
+     * сессию записывает название изображения.
+     *
+     * @method isSavedImage
+     *
+     * @param UploadedFile     $image
+     * @param \yii\web\Session $session
+     *
+     * @return bool true если изображение успешно сохранено
+     */
+    private function isSavedImage(UploadedFile $image, \yii\web\Session $session)
+    {
+        // Если необходимо сгенерировать уникальное название изображения.
         if ($this->uniqueName && $image->extension) {
-            $image->name = uniqid('i-' . time()) . '.' . $image->extension;
+            $image->name = uniqid('i-'.time()).'.'.$image->extension;
         }
 
-        // Если в сессии пользователя существует запись.
-        if (Yii::$app->getSession()->get('tempImage')) {
+        // Если в сессии существует запись.
+        if ($session->get('tempImage')) {
             // Удаляем запись и изображение если существет.
-            $this->removeTempImage();
+            $this->removeImage($session);
         }
-        // Сохраняем в сессии пользователя
-        // название изображения.
-        Yii::$app->getSession()->set('tempImage', $image->name);
 
-        if (!$image->saveAs($this->tempPath . $image->name)) {
+        // Сохраняем в сессию название изображения.
+        $session->set('tempImage', $image->name);
+
+        // Если не удалось сохранить изображение.
+        if ($image->saveAs($this->tempPath.$image->name) === false) {
             return false;
         }
 
-        $this->savedImage = $this->tempUrl . $image->name;
+        // Получаем url по которому сохранено изображение.
+        $this->savedImage = $this->tempUrl.$image->name;
 
         return true;
     }
 
     /**
-     * Удаляет изображение из папки и запись из сессии пользователя.
+     * Удаляет изображение из папки и запись из сессии.
      *
-     * @method removeTempImage
+     * @method removeImage
+     *
+     * @param \yii\web\Session $session
      */
-    private function removeTempImage()
+    private function removeImage(\yii\web\Session $session)
     {
-        $path = $this->tempPath . Yii::$app->getSession()->get('tempImage');
+        // Получаем путь до изображния.
+        $path = $this->tempPath.$session->get('tempImage');
+
         // Если изображение существует.
         if (is_file($path)) {
             // Удаляем изображение.
             unlink($path);
         }
-        // Удаляем запись из сессии пользователя.
-        Yii::$app->getSession()->remove('tempImage');
+
+        // Удаляем запись из сессии.
+        $session->remove('tempImage');
     }
 }

@@ -2,7 +2,7 @@
 
 namespace wise5lin\croppic;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -11,7 +11,6 @@ namespace wise5lin\croppic;
  * @link   <wise5lin@yandex.ru>
  */
 
-use yii\base\Widget;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\base\InvalidConfigException;
@@ -20,7 +19,8 @@ use yii\base\InvalidConfigException;
  * Виджет для Croppic - jquery плагин для обрезки изображения.
  *
  * @see http://www.croppic.net/
- * @link https://github.com/sconsult/croppic
+ *
+ * @example https://github.com/sconsult/croppic
  *
  * ИСПОЛЬЗОВАНИЕ:
  *
@@ -44,7 +44,7 @@ use yii\base\InvalidConfigException;
  *    ],
  * ]) ?>
  */
-class Croppic extends Widget
+class Croppic extends \yii\base\Widget
 {
     /**
      * HTML атрибуты для тега div.
@@ -60,25 +60,31 @@ class Croppic extends Widget
      */
     public $pluginOptions = [];
 
+    //   _ \ _)   _| _|                     |       __|            |
+    //   |  | |   _| _| -_)   _| -_)    \    _|    (      _ \   _` |   -_)
+    //  ___/ _| _| _| \___| _| \___| _| _| \__|   \___| \___/ \__,_| \___|
+
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init()
     {
         // Если не установлен 'id' виджета.
-        if (!isset($this->options['id'])) {
+        if (empty($this->options['id'])) {
             // Используем автоматически сгенерированный id.
             $this->options['id'] = $this->getId();
         }
+
         // Присваиваем 'id' виджету.
         $this->id = $this->options['id'];
 
         // Если параметр 'uploadUrl' не заполнен.
-        if (!isset($this->pluginOptions['uploadUrl']) || empty($this->pluginOptions['uploadUrl'])) {
+        if (empty($this->pluginOptions['uploadUrl'])) {
             throw new InvalidConfigException('Параметр "uploadUrl" не может быть пустым');
         }
+
         // Если параметр 'cropUrl' не заполнен.
-        if (!isset($this->pluginOptions['cropUrl']) || empty($this->pluginOptions['cropUrl'])) {
+        if (empty($this->pluginOptions['cropUrl'])) {
             throw new InvalidConfigException('Параметр "cropUrl" не может быть пустым');
         }
 
@@ -86,7 +92,7 @@ class Croppic extends Widget
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function run()
     {
@@ -96,7 +102,9 @@ class Croppic extends Widget
     }
 
     /**
-     * Регистрирует css и js файлы на странице.
+     * Регистрирует CSS и JS файлы на странице.
+     *
+     * @method registerClientScript
      */
     public function registerClientScript()
     {
@@ -104,8 +112,8 @@ class Croppic extends Widget
         CroppicAsset::register($view);
 
         $pluginOptions = Json::encode($this->pluginOptions);
-        $js = "var {$this->id} = new Croppic('{$this->id}', {$pluginOptions});";
+        $registerJs = "var {$this->id} = new Croppic('{$this->id}', {$pluginOptions});";
 
-        $view->registerJs($js);
+        $view->registerJs($registerJs);
     }
 }

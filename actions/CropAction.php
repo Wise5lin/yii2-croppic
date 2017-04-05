@@ -2,7 +2,7 @@
 
 namespace wise5lin\croppic\actions;
 
-/**
+/*
  *          _)             __|  | _)
  * \ \  \ / | (_-<   -_) __ \  |  |    \
  *  \_/\_/ _| ___/ \___| ___/ _| _| _| _|
@@ -12,7 +12,6 @@ namespace wise5lin\croppic\actions;
  */
 
 use Yii;
-use yii\base\Action;
 use yii\helpers\Json;
 use yii\base\DynamicModel;
 use yii\helpers\FileHelper;
@@ -23,7 +22,7 @@ use yii\base\InvalidConfigException;
 /**
  * Класс действия для обрезки изображения.
  *
- * Использование:
+ * ИСПОЛЬЗОВАНИЕ:
  *
  * public function behaviors()
  * {
@@ -67,26 +66,23 @@ use yii\base\InvalidConfigException;
  *     return true;
  * }
  */
-class CropAction extends Action
+class CropAction extends \yii\base\Action
 {
     /**
-     * Абсолютный путь к директории в которую
-     * будет загружено изображение.
+     * Абсолютный путь к директории в которую будет загружено изображение.
      *
      * @var string
      */
     public $path;
     /**
-     * URL указывающий путь к директории в которую
-     * будет загружено изображение.
+     * URL указывающий путь к директории в которую будет загружено изображение.
      *
      * @var string
      */
     public $url;
     /**
-     * Экземпляр класса который будет использоваться для
-     * проверки доступа к странице и сохранения пути или
-     * имени изображения в базу данных.
+     * Экземпляр класса который будет использоваться для проверки доступа к
+     * странице и сохранения пути или имени изображения в базу данных.
      *
      * @var string
      */
@@ -105,15 +101,15 @@ class CropAction extends Action
      */
     public $modelAttribute;
     /**
-     * Указывает, сохранять в базу данных полный путь к
-     * изображению 'true' или только название изображения 'false'.
+     * Указывает, сохранять в базу данных полный путь к изображению
+     * 'true' или только название изображения 'false'.
      * По умолчанию сохраняется полный путь к изображению.
      *
      * ПРИМЕР:
      * Берется значение из атрибута 'url' и к нему прибавляется
      * название изображения 'img/user/avatar/img.jpeg'.
      *
-     * @var boolean
+     * @var bool
      */
     public $modelAttributeSavePath = true;
     /**
@@ -142,29 +138,48 @@ class CropAction extends Action
      */
     private $croppedImage;
 
+    //   _ \ _)   _| _|                     |       __|            |
+    //   |  | |   _| _| -_)   _| -_)    \    _|    (      _ \   _` |   -_)
+    //  ___/ _| _| _| \___| _| \___| _| _| \__|   \___| \___/ \__,_| \___|
+
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init()
     {
-        // Если атрибут 'path' не заполнен.
-        if ($this->path === null) {
-            throw new InvalidConfigException(
-                'Атрибут "path" не может быть пустым.'
-            );
-        }
-        $this->path = rtrim(Yii::getAlias($this->path), '/') . '/';
+        /** @var \yii\web\Request */
+        $request = Yii::$app->request;
 
-        // Если атрибут 'url' не заполнен.
-        if ($this->url === null) {
+        // Если в 'POST' существует параметр 'path'.
+        if (($path = $request->post('path')) !== null) {
+            $this->path = $path;
+        }
+
+        // Если атрибут 'path' не заполнен или не является строкой.
+        if (empty($this->path) || is_string($this->path) === false) {
             throw new InvalidConfigException(
-                'Атрибут "url" не может быть пустым.'
+                'Атрибут "path" пуст или не является строкой.'
             );
         }
-        $this->url = rtrim($this->url, '/') . '/';
+
+        $this->path = rtrim(Yii::getAlias($this->path), '/').'/';
+
+        // Если в 'POST' существует параметр 'url'.
+        if (($url = $request->post('url')) !== null) {
+            $this->url = $url;
+        }
+
+        // Если атрибут 'url' не заполнен или не является строкой.
+        if (empty($this->url) || is_string($this->url) === false) {
+            throw new InvalidConfigException(
+                'Атрибут "url" пуст или не является строкой.'
+            );
+        }
+
+        $this->url = rtrim($this->url, '/').'/';
 
         // Если директория не существует или не удается её создать.
-        if (!FileHelper::createDirectory($this->path)) {
+        if (FileHelper::createDirectory($this->path) === false) {
             throw new InvalidCallException(
                 'Директория указанная в атрибуте "path" не существует или не может быть создана.'
             );
@@ -172,41 +187,29 @@ class CropAction extends Action
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function run()
     {
-        $this->modelAttribute();
-        $attributes = $this->getPostData();
+        // Работаем с дополнительными возможностями.
+        $this->workWithAdditionalFeatures();
 
-        // Создаем экземпляр класса DynamicModel,
-        // определяем атрибуты, проводим проверку.
-        $model = DynamicModel::validateData(
-            $attributes,
-            [
-                [['imgUrl', 'imgW', 'imgH', 'imgX1', 'imgY1', 'cropW', 'cropH', 'rotation'], 'required'],
-                ['imgUrl', 'string'],
-                ['imgUrl', 'filter', 'filter' => 'strip_tags'],
-                [['imgW', 'imgH', 'imgX1', 'imgY1', 'cropW', 'cropH', 'rotation'], 'double']
-            ]
-        );
+        // Получаем данные и правила валидации.
+        list($data, $rules) = $this->getValidateData();
 
-        // Если нет ошибок валидации и
-        // изображение успешно сохранено.
-        if (!$model->hasErrors() && $this->cropImage($model)) {
-            // Если атрибуты 'model' и 'modelAttribute' заполнены.
-            if ($this->model !== null && $this->modelAttribute !== null) {
-                $modelAttribute = $this->modelAttribute;
-                // Присваиваем указанному атрибуту путь или только имя изображения.
-                $this->model->$modelAttribute = $this->modelAttributeSavePath ?
-                    $this->croppedImage :
-                    Yii::$app->getSession()->get('tempImage');
+        // Проводим проверку атрибутов пришедших по средствам 'POST'.
+        $model = DynamicModel::validateData($data, $rules);
 
-                $this->model->save();
-            }
+        /** @var \yii\web\Session */
+        $session = Yii::$app->session;
+
+        // Если нет ошибок валидации и изображение успешно обработано.
+        if ($model->hasErrors() === false && $this->isCroppedImage($model, $session)) {
+            // Сохраняем данные в базу.
+            $this->saveModel($session);
 
             // Удаляем изображение из папки темп.
-            $this->removeTempImage($model->imgUrl);
+            $this->removeTempImage($model->imgUrl, $session);
 
             // Формируем удачный ответ.
             $response = [
@@ -214,94 +217,107 @@ class CropAction extends Action
                 'url' => $this->croppedImage,
             ];
 
-            goto success;
+            // Выходим.
+            goto leave;
         }
 
+        // Формируем неудачный ответ.
         $response = [
             'status' => 'error',
             'message' => 'Не удалось обработать изображение.',
         ];
 
-        success:
+        leave:
 
         // Возвращаем JSON стоку.
         return Json::encode($response);
     }
 
     /**
-     * Используется для разгрузки метода 'run'.
+     * Работает с дополнительными возможностями.
      *
-     * @method modelAttribute
+     * @method workWithAdditionalFeatures
      */
-    private function modelAttribute()
+    private function workWithAdditionalFeatures()
     {
         // Если атрибут 'model' заполнен.
-        if ($this->model !== null) {
-            // Проверяем чтобы он являлся
-            // экземпляром класса 'yii\db\BaseActiveRecord'.
-            if (!($this->model instanceof \yii\db\BaseActiveRecord)) {
+        if (empty($this->model) === false) {
+            // Если атрибут 'model' не является экземпляром
+            // класса 'yii\db\BaseActiveRecord'.
+            if (($this->model instanceof \yii\db\BaseActiveRecord) === false) {
                 throw new InvalidConfigException(
                     'Атрибут "model" не является экземпляром класса "yii\db\BaseActiveRecord".'
                 );
             }
+
             // Если атрибут 'modelScenario' заполнен.
-            if ($this->modelScenario !== null) {
-                $this->model->scenario = $this->modelScenario;
+            if (empty($this->modelScenario) === false) {
+                $this->model->setScenario($this->modelScenario);
             }
+
             // Если атрибуты 'permissionRBAC' и 'parameterRBAC' заполнены.
-            if ($this->permissionRBAC !== null && $this->parameterRBAC !== null) {
+            if (empty($this->permissionRBAC) === false && empty($this->parameterRBAC) === false) {
                 // Проверяем доступ пользователя к странице.
                 if (!Yii::$app->user->can($this->permissionRBAC, [$this->parameterRBAC => $this->model])) {
-                    throw new ForbiddenHttpException(
-                        'У вас нет доступа к этой странице.'
-                    );
+                    throw new ForbiddenHttpException('У вас нет доступа к этой странице.');
                 }
             }
         }
     }
 
     /**
-     * Формирует и возварщает массив с параметрами
-     * пришедшими по средствам POST.
+     * Формирует и возвращает массив с данными пришедшими по
+     * средствам POST и правилами валидации.
      *
-     * @method getPostData
-     * @return array       массив с параметрами
+     * @method getValidateData
+     *
+     * @return array
      */
-    private function getPostData()
+    private function getValidateData()
     {
+        /** @var \yii\web\Request */
         $request = Yii::$app->request;
 
         return [
-            // Путь к загруженному изображению.
-            'imgUrl' => $request->post('imgUrl'),
-            // Измененные разметы изображения.
-            'imgW' => $request->post('imgW'),
-            'imgH' => $request->post('imgH'),
-            // Смещение изображения.
-            'imgY1' => $request->post('imgY1'),
-            'imgX1' => $request->post('imgX1'),
-            // Размеры области обрезки.
-            'cropW' => $request->post('cropW'),
-            'cropH' => $request->post('cropH'),
-            // Угол поворота изображения.
-            'rotation' => $request->post('rotation')
+            [
+                // Путь к загруженному изображению.
+                'imgUrl' => $request->post('imgUrl'),
+                // Измененные разметы изображения.
+                'imgW' => $request->post('imgW'),
+                'imgH' => $request->post('imgH'),
+                // Смещение изображения.
+                'imgY1' => $request->post('imgY1'),
+                'imgX1' => $request->post('imgX1'),
+                // Размеры области обрезки.
+                'cropW' => $request->post('cropW'),
+                'cropH' => $request->post('cropH'),
+                // Угол поворота изображения.
+                'rotation' => $request->post('rotation'),
+            ],
+            [
+                [['imgUrl', 'imgW', 'imgH', 'imgX1', 'imgY1', 'cropW', 'cropH', 'rotation'], 'required'],
+                ['imgUrl', 'string'],
+                ['imgUrl', 'filter', 'filter' => 'strip_tags'],
+                [['imgW', 'imgH', 'imgX1', 'imgY1', 'cropW', 'cropH', 'rotation'], 'double'],
+            ],
         ];
     }
 
     /**
-     * Получает загруженное изображение, обрабатывает и сохраняет
-     * в указанную папку. Если необходимо, сохраняет путь или
-     * имя изображения в базу данных.
+     * Получает загруженное изображение, обрабатывает и сохраняет в указанную папку.
+     * Если необходимо, сохраняет путь или имя изображения в базу данных.
      *
-     * @method cropImage
-     * @param  DynamicModel $model экземпляр класса
-     * @return bool                true если изображение успешно сохранено
+     * @method isCroppedImage
+     *
+     * @param DynamicModel     $model
+     * @param \yii\web\Session $session
+     *
+     * @return bool true если изображение успешно обработано
      */
-    private function cropImage(\yii\base\DynamicModel $model)
+    private function isCroppedImage(DynamicModel $model, \yii\web\Session $session)
     {
-        // Проверяем что изображение существует
-        // и можеты быть прочитано.
-        if (!is_readable(Yii::getAlias('@webroot/' . $model->imgUrl))) {
+        // Если изображение не существует или не может быть прочитано.
+        if (is_readable(Yii::getAlias('@webroot/'.$model->imgUrl)) === false) {
             throw new InvalidCallException(
                 'Изображение не существует или не может быть прочитано.'
             );
@@ -313,47 +329,51 @@ class CropAction extends Action
             \yii\imagine\Image::DRIVER_GD2,
         ];
 
-        $imagine = new \yii\imagine\Image;
+        /** @var \yii\imagine\Image */
+        $imagine = new \yii\imagine\Image();
 
         // Если атрибуты 'model' и 'modelAttribute' заполнены.
-        if ($this->model !== null && $this->modelAttribute !== null) {
+        if (empty($this->model) === false && empty($this->modelAttribute) === false) {
             // Удаляем предыдущее изображение.
             $this->removeImage();
         }
 
         // Обрабатываем и сохраняем изображение.
-        $image = $imagine->getImagine()->open(
-            Yii::getAlias('@webroot/' . $model->imgUrl)
-        )
+        $image = $imagine->getImagine()
+        ->open(Yii::getAlias('@webroot/'.$model->imgUrl))
         ->resize(new \Imagine\Image\Box($model->imgW, $model->imgH))
         ->rotate($model->rotation)
         ->crop(
             new \Imagine\Image\Point($model->imgX1, $model->imgY1),
             new \Imagine\Image\Box($model->cropW, $model->cropH)
         )
-        ->save($this->path . Yii::$app->getSession()->get('tempImage'));
+        ->save($this->path.$session->get('tempImage'));
 
-        if (!$image) {
+        // Если не удалось сохранить изображение.
+        if ($image === false) {
             return false;
         }
 
-        $this->croppedImage = $this->url . Yii::$app->getSession()->get('tempImage');
+        // Получаем url по которому сохранено изображение.
+        $this->croppedImage = $this->url.$session->get('tempImage');
 
         return true;
     }
 
     /**
-     * Удаляет предыдущее изображение,
-     * перед тем как сохранить новое.
+     * Удаляет предыдущее изображение, перед тем как сохранить новое.
      *
      * @method removeImage
      */
     private function removeImage()
     {
+        // Получаем название атрибута модели.
         $modelAttribute = $this->modelAttribute;
+
+        // Получаем путь до изображния.
         $path = $this->modelAttributeSavePath ?
-            Yii::getAlias('@webroot/' . $this->model->$modelAttribute) :
-            $this->path . $this->model->$modelAttribute;
+            Yii::getAlias('@webroot/'.$this->model->$modelAttribute) :
+            $this->path.$this->model->$modelAttribute;
 
         // Если изображение существует.
         if (is_file($path)) {
@@ -363,19 +383,54 @@ class CropAction extends Action
     }
 
     /**
-     * Удаляет изображение из папки и запись из сессии пользователя.
+     * Сохраняет путь или только имя изображения в базу.
+     *
+     * @method saveModel
+     *
+     * @param \yii\web\Session $session
+     */
+    private function saveModel(\yii\web\Session $session)
+    {
+        // Если атрибуты 'model' и 'modelAttribute' заполнены.
+        if (empty($this->model) === false && empty($this->modelAttribute) === false) {
+            // Получаем название атрибута модели.
+            $modelAttribute = $this->modelAttribute;
+
+            // Присваиваем указанному атрибуту путь или только имя изображения.
+            $this->model->$modelAttribute = $this->modelAttributeSavePath ?
+                $this->croppedImage : $session->get('tempImage');
+
+            // Если сохранение не удалось.
+            if ($this->model->save() === false) {
+                // Пишем лог сообщение.
+                Yii::error([
+                    'extension' => 'wise5lin/croppic',
+                    'message' => $this->model->getErrors(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Удаляет изображение из папки и запись из сессии.
      *
      * @method removeTempImage
+     *
+     * @param string           $imgUrl  url до изображения
+     * @param \yii\web\Session $session
      */
-    private function removeTempImage($imgUrl)
+    private function removeTempImage($imgUrl, \yii\web\Session $session)
     {
-        $path = Yii::getAlias('@webroot/' . $imgUrl);
+        // Получаем путь до изображния.
+        $path = Yii::getAlias('@webroot/'.$imgUrl);
+
         // Если изображение существует.
         if (is_file($path)) {
             // Удаляем изображение.
             unlink($path);
         }
-        // Удаляем запись из сессии пользователя.
-        Yii::$app->getSession()->remove('tempImage');
+
+        // Удаляем запись из сессии.
+        $session->remove('tempImage');
     }
 }
