@@ -267,7 +267,7 @@
 
 				var img =$('<img src="'+ that.options.loadPicture +'">');
 				that.obj.append(img);
-				img.load(function() {
+				img.on('load', function(){
 					that.imgInitW = that.imgW = this.width;
 					that.imgInitH = that.imgH = this.height;
 					that.initCropper();
@@ -310,7 +310,7 @@
 
 				that.obj.append(img);
 
-				img.load(function(){
+				img.on('load', function(){
 					that.initCropper();
 					that.hideLoader();
 					if (that.options.onAfterImgUpload) that.options.onAfterImgUpload.call(that);
