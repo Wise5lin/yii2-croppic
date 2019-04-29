@@ -1,3 +1,7 @@
+1.0.3
+-----
+- Merge pull request #1 from hreitsma/patch-1
+
 1.0.2
 -----
 
